@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jardín de Lirios</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body, html {
+            width:100%; height:100%;
+            overflow:hidden;
+            font-family:'Georgia',serif;
+        }
+        .scene {
+            position:relative;
+            width:100%; height:100vh;
+            background:linear-gradient(to bottom, #74aade 0%, #b3daf6 50%, #e3f2fd 100%);
+        }
+        .sun {
+            position:absolute; top:50px; right:12%;
+            width:80px; height:80px;
+            background:radial-gradient(circle, #fffde7 0%, #fff59d 40%, #ffee58 100%);
+            border-radius:50%;
+            box-shadow:0 0 40px 15px rgba(255,235,59,0.4);
+        }
+        .cloud {
+            position:absolute;
+            background:rgba(255,255,255,0.9);
+            border-radius:50px;
+            animation:moveClouds linear infinite;
+        }
+        .cloud::before, .cloud::after {
+            content:''; position:absolute;
+            background:rgba(255,255,255,0.9);
+            border-radius:50%;
+        }
+        .c1 { width:140px; height:40px; top:12%; animation-duration:45s; animation-delay:-8s; }
+        .c1::before { width:65px; height:60px; top:-30px; left:20px; }
+        .c1::after { width:50px; height:45px; top:-22px; left:65px; }
+        .c2 { width:190px; height:46px; top:24%; animation-duration:65s; animation-delay:-30s; opacity:0.7; }
+        .c2::before { width:75px; height:65px; top:-32px; left:30px; }
+        .c2::after { width:60px; height:50px; top:-24px; left:90px; }
+        
+        .tree-container {
+            position:absolute;
+            bottom:110px; left:5%;
+            z-index:5;
+            width:420px; height:500px;
+            pointer-events:none;
+        }
+        .tree-wrap {
+            width:100%; height:100%;
+            transform-origin:210px 480px;
+            animation:treeSway 6s ease-in-out infinite;
+        }
+        .tree-svg {
+            width:100%; height:100%;
+            overflow:visible;
+        }
+        
+        .lilies-field {
+            position:absolute;
+            bottom:0; width:100%; height:170px;
+            z-index:10;
+            pointer-events:none;
+        }
+        .lily-wrap {
+            position:absolute; bottom:0;
+            transform-origin:bottom center;
+        }
+        .lily-inner {
+            display:block;
+            transform-origin:bottom center;
+            animation:lilySway ease-in-out infinite;
+        }
+        .grass {
+            position:absolute; bottom:0; width:100%; height:180px;
+            background:linear-gradient(to top, #11350c 0%, #1e5a16 50%, #2a7a21 100%);
+            z-index:4;
+        }
+        
+        .envelope-container {
+            position:fixed; top:50%; left:50%;
+            transform:translate(-50%, -35%);
+            z-index:100;
+            width:380px; height:260px;
+            cursor:pointer;
+        }
+        .envelope-svg {
+            position:absolute; inset:0;
+            width:100%; height:100%;
+            overflow:visible;
+            filter:drop-shadow(0 12px 28px rgba(0,0,0,0.15));
+            transition:transform 0.25s ease;
+            z-index:3;
+        }
+        .envelope-container:hover .envelope-svg { transform:scale(1.02); }
+        
+        .letter-sheet {
+            position:absolute;
+            left:8%; bottom:12px;
+            width:84%; height:285px;
+            background:#fffef9;
+            border-radius:8px;
+            padding:24px 20px;
+            text-align:center;
+            z-index:1;
+            transform:translateY(0); opacity:0; pointer-events:none;
+            transition:transform 0.8s cubic-bezier(0.25, 1, 0.35, 1), opacity 0.4s ease;
+            box-shadow:0 4px 18px rgba(0,0,0,0.08);
+        }
+        .envelope-container.open .letter-sheet {
+            transform:translateY(-130px); opacity:1; pointer-events:auto; z-index:4;
+        }
+        
+        .deco-flower { font-size:1.4rem; display:block; margin-bottom:12px; }
+        .legend { color:#4e342e; font-size:0.95rem; line-height:1.6; font-style:italic; margin-bottom:16px; }
+        .timer { margin-top:12px; border-top:1px dashed rgba(0,0,0,0.1); padding-top:12px; }
+        .timer p { font-size:0.65rem; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:6px; color:#a1887f; }
+        #countdown { font-size:1.2rem; font-weight:700; color:#4e342e; letter-spacing:0.3px; }
+        .num { color:#d84315; font-variant-numeric:tabular-nums; }
+        .unit-label { font-size:0.65rem; color:#8d6e63; margin:0 4px 0 1px; vertical-align:middle; }
+        
+        .click-hint {
+            position:absolute; bottom:-32px; left:50%;
+            transform:translateX(-50%);
+            font-size:0.7rem; color:rgba(216,67,21,0.8);
+            letter-spacing:1.5px; text-transform:uppercase;
+            animation:hintPulse 2.5s ease-in-out infinite;
+            white-space:nowrap;
+            z-index:10;
+        }
+        .envelope-container.open .click-hint { display:none; }
+        
+        .flap-group {
+            transform-origin:190px 42px;
+            transition:transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .envelope-container.open .flap-group {
+            transform:rotateX(180deg);
+        }
+        
+        @keyframes treeSway {
+            0%, 100% { transform:rotate(-0.8deg); }
+            50% { transform:rotate(1deg); }
+        }
+        @keyframes lilySway {
+            0%, 100% { transform:rotate(-2.5deg); }
+            50% { transform:rotate(3deg); }
+        }
+        @keyframes moveClouds {
+            from { left:-200px; } to { left:105%; }
+        }
+        @keyframes hintPulse {
+            0%, 100% { opacity:0.5; transform:translateX(-50%) translateY(0); }
+            50% { opacity:1; transform:translateX(-50%) translateY(-2px); }
+        }
+    </style>
+</head>
+<body>
+<div class="scene">
+    <div class="sun"></div>
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+
+    <div class="tree-container">
+        <div class="tree-wrap">
+            <svg class="tree-svg" viewBox="0 0 420 500" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#2d1a0c"/>
+                        <stop offset="25%" stop-color="#4d321f"/>
+                        <stop offset="70%" stop-color="#5c3d26"/>
+                        <stop offset="100%" stop-color="#3a2210"/>
+                    </linearGradient>
+                    <linearGradient id="branchGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#362010"/>
+                        <stop offset="50%" stop-color="#4d321f"/>
+                        <stop offset="100%" stop-color="#2d1a0c"/>
+                    </linearGradient>
+                </defs>
+                <g id="tree-base">
+                    <g id="fg-back"></g>
+                    <path d="M192,480 C188,430 184,370 188,310 C192,270 200,230 206,190 L214,190 C220,230 228,270 232,310 C236,370 232,430 228,480 Z" fill="url(#trunkGrad)"/>
+                    <path d="M192,480 C170,475 145,472 120,482" stroke="#362010" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path d="M228,480 C250,475 275,472 300,482" stroke="#362010" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path d="M200,480 C190,482 175,488 165,494" stroke="#362010" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M220,480 C230,482 245,488 255,494" stroke="#362010" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M206,190 C182,175 152,160 120,152 Q80,142 40,140" stroke="url(#branchGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <path d="M214,190 C238,175 268,160 300,152 Q340,142 380,140" stroke="url(#branchGrad)" stroke-width="12" fill="none" stroke-linecap="round"/>
+                    <path d="M202,230 C175,215 140,202 105,198 Q65,192 25,195" stroke="url(#branchGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path d="M218,230 C245,215 280,202 315,198 Q355,192 395,195" stroke="url(#branchGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path d="M208,275 C170,265 130,260 90,262" stroke="url(#branchGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    <path d="M212,275 C250,265 290,260 330,262" stroke="url(#branchGrad)" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    <path d="M210,190 C206,155 204,115 198,80 C194,55 186,32 178,10" stroke="url(#branchGrad)" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path d="M210,190 C214,155 216,115 222,80 C226,55 234,32 242,10" stroke="url(#branchGrad)" stroke-width="9" fill="none" stroke-linecap="round"/>
+                    <path d="M120,152 C95,135 70,115 45,100" stroke="url(#branchGrad)" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M120,152 C115,130 115,105 120,85" stroke="url(#branchGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M300,152 C325,135 350,115 375,100" stroke="url(#branchGrad)" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M300,152 C305,130 305,105 300,85" stroke="url(#branchGrad)" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M198,80 C180,62 155,45 130,32" stroke="url(#branchGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M198,80 C200,58 205,38 212,18" stroke="url(#branchGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M222,80 C240,62 265,45 290,32" stroke="url(#branchGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M222,80 C220,58 215,38 208,18" stroke="url(#branchGrad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <g id="fg-front"></g>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="lilies-field" id="garden"></div>
+    <div class="grass"></div>
+</div>
+
+<div class="envelope-container" id="envelopeContainer">
+    <div class="letter-sheet">
+        <span class="deco-flower">🌸</span>
+        <p class="legend">Un gran jardín lleno de lirios donde el tiempo se detiene a tu lado.</p>
+        <div class="timer">
+            <p>Llevamos juntos</p>
+            <div id="countdown">
+                <span class="num" id="days">00</span><span class="unit-label">d</span>
+                <span class="num" id="hours">00</span><span class="unit-label">h</span>
+                <span class="num" id="minutes">00</span><span class="unit-label">m</span>
+                <span class="num" id="seconds">00</span><span class="unit-label">s</span>
+            </div>
+        </div>
+    </div>
+
+    <svg class="envelope-svg" viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="envGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f0a090"/>
+                <stop offset="100%" stop-color="#e07868"/>
+            </linearGradient>
+            <linearGradient id="envLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f7b8a8"/>
+                <stop offset="100%" stop-color="#e88878"/>
+            </linearGradient>
+        </defs>
+
+        <rect x="0" y="30" width="380" height="230" rx="12" ry="12" fill="url(#envGrad)"/>
+        <path d="M0,140 L190,195 L380,140 L380,260 Q380,260 0,260 Z" fill="rgba(0,0,0,0.07)"/>
+
+        <g class="flap-group" id="flapGroup">
+            <path d="M0,42 Q0,30 12,30 L190,30 L368,30 Q380,30 380,42 L190,138 Z" fill="url(#envLight)"/>
+            <path d="M0,42 L190,138 L380,42" fill="none" stroke="#c86050" stroke-width="1.5" opacity=".4"/>
+            <path d="M12,30 L368,30" stroke="#c86050" stroke-width="1" opacity=".2"/>
+        </g>
+
+        <path d="M0,42 L0,248 L178,170 Z" fill="#e88070"/>
+        <path d="M380,42 L380,248 L202,170 Z" fill="#dd7060"/>
+        <path d="M0,248 L190,170 L380,248 Q380,260 190,260 Q0,260 0,248 Z" fill="#e07060"/>
+
+        <rect x="0" y="30" width="380" height="230" rx="12" ry="12" fill="none" stroke="#c86050" stroke-width="1.5" opacity=".4"/>
+
+        <circle cx="58" cy="212" r="22" fill="none" stroke="#c86050" stroke-width="2" opacity=".5"/>
+        <circle cx="58" cy="212" r="16" fill="none" stroke="#c86050" stroke-width="1" opacity=".35"/>
+        <text x="58" y="216" text-anchor="middle" font-size="10" fill="#c86050" opacity=".6" font-family="Georgia">✉</text>
+
+        <line x1="300" y1="204" x2="340" y2="204" stroke="#c86050" stroke-width="1.5" opacity=".45"/>
+        <line x1="300" y1="210" x2="340" y2="210" stroke="#c86050" stroke-width="1.5" opacity=".45"/>
+        <line x1="300" y1="216" x2="340" y2="216" stroke="#c86050" stroke-width="1.5" opacity=".45"/>
+
+        <circle cx="310" cy="70" r="5" fill="#f7d090"/>
+        <circle cx="310" cy="60" r="3.5" fill="#f7d090"/>
+        <circle cx="310" cy="80" r="3.5" fill="#f7d090"/>
+        <circle cx="302" cy="65" r="3.5" fill="#f7d090"/>
+        <circle cx="318" cy="65" r="3.5" fill="#f7d090"/>
+        <circle cx="302" cy="75" r="3.5" fill="#f7d090"/>
+        <circle cx="318" cy="75" r="3.5" fill="#f7d090"/>
+        <circle cx="310" cy="70" r="3.5" fill="#f09030"/>
+
+        <circle cx="330" cy="88" r="3.5" fill="#f7d090"/>
+        <circle cx="330" cy="81" r="2.5" fill="#f7d090"/>
+        <circle cx="330" cy="95" r="2.5" fill="#f7d090"/>
+        <circle cx="324" cy="85" r="2.5" fill="#f7d090"/>
+        <circle cx="336" cy="85" r="2.5" fill="#f7d090"/>
+        <circle cx="330" cy="88" r="2.5" fill="#f09030"/>
+    </svg>
+
+    <div class="click-hint">✉ Toca para abrir</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const garden = document.getElementById('garden');
+    const fgBack = document.getElementById('fg-back');
+    const fgFront = document.getElementById('fg-front');
+    const NS = "http://www.w3.org/2000/svg";
+
+    const focos = [
+        {cx:210, cy:45,  r:45,  n:180, z:'front'},
+        {cx:170, cy:30,  r:45,  n:160, z:'front'},
+        {cx:250, cy:30,  r:45,  n:160, z:'front'},
+        {cx:130, cy:40,  r:45,  n:140, z:'front'},
+        {cx:290, cy:40,  r:45,  n:140, z:'front'},
+        {cx:90,  cy:65,  r:55,  n:200, z:'front'},
+        {cx:330, cy:65,  r:55,  n:200, z:'front'},
+        {cx:50,  cy:105, r:60,  n:240, z:'front'},
+        {cx:370, cy:105, r:60,  n:240, z:'front'},
+        {cx:30,  cy:155, r:60,  n:240, z:'front'},
+        {cx:390, cy:155, r:60,  n:240, z:'front'},
+        {cx:65,  cy:210, r:65,  n:220, z:'front'},
+        {cx:355, cy:210, r:65,  n:220, z:'front'},
+        {cx:105, cy:250, r:60,  n:180, z:'front'},
+        {cx:315, cy:250, r:60,  n:180, z:'front'},
+        {cx:160, cy:115, r:45,  n:130, z:'back'},
+        {cx:260, cy:115, r:45,  n:130, z:'back'},
+        {cx:210, cy:130, r:50,  n:150, z:'back'}
+    ];
+
+    const leafD = "M0,-12 C7,-6 7,6 0,12 C-7,6 -7,-6 0,-12Z";
+    const greens = [
+        '#0f3d0a', '#144d0f', '#195c14', '#216c1a', '#297c21',
+        '#338c28', '#3f9d30', '#4cad39', '#5abd43', '#27631b'
+    ];
+
+    focos.forEach(f => {
+        const target = f.z === 'back' ? fgBack : fgFront;
+        for (let i = 0; i < f.n; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const d = Math.pow(Math.random(), 0.45) * f.r;
+            const x = f.cx + Math.cos(a) * d;
+            const y = f.cy + Math.sin(a) * d;
+            const rot = Math.random() * 360;
+            const sc = 0.8 + Math.random() * 1.4;
+            const col = greens[Math.floor(Math.random() * greens.length)];
+            const op = 0.82 + Math.random() * 0.18;
+
+            const p = document.createElementNS(NS, "path");
+            p.setAttribute("d", leafD);
+            p.setAttribute("fill", col);
+            p.setAttribute("opacity", String(op));
+            p.setAttribute("transform", `translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${sc.toFixed(2)})`);
+            target.appendChild(p);
+        }
+    });
+
+    const lilyColors = [
+        {petal:'#ffffff', center:'#fbc02d'},
+        {petal:'#fff9f2', center:'#f9a825'},
+        {petal:'#fff5f5', center:'#ff8f00'},
+        {petal:'#f5faff', center:'#fdd835'}
+    ];
+    const capas = [
+        {cols:55, filas:3, yMin:0,  yMax:50,  sMin:.48, sMax:.70},
+        {cols:62, filas:3, yMin:25, yMax:85,  sMin:.60, sMax:.85},
+        {cols:68, filas:3, yMin:55, yMax:115, sMin:.75, sMax:1.00},
+        {cols:74, filas:2, yMin:85, yMax:150, sMin:.90, sMax:1.15}
+    ];
+
+    capas.forEach(capa => {
+        for (let fila = 0; fila < capa.filas; fila++) {
+            for (let col = 0; col < capa.cols; col++) {
+                const c = lilyColors[Math.floor(Math.random() * lilyColors.length)];
+                const stem = Math.random() > .5 ? '#265c1e' : '#1b4715';
+                const baseX = (col / capa.cols) * 100;
+                const jx = (Math.random() - .5) * (100 / capa.cols) * 1.1;
+                const fx = Math.max(0, Math.min(99.5, baseX + jx));
+                const yPos = capa.yMin + Math.random() * (capa.yMax - capa.yMin);
+                const sc = capa.sMin + Math.random() * (capa.sMax - capa.sMin);
+
+                const wrap = document.createElement('div');
+                wrap.className = 'lily-wrap';
+                wrap.style.cssText = `left:${fx}%;bottom:${yPos}px;transform:scale(${sc.toFixed(3)});z-index:${Math.floor(yPos)};`;
+
+                const inner = document.createElement('div');
+                inner.className = 'lily-inner';
+                inner.style.cssText = `animation-duration:${(2.4 + Math.random() * 2.4).toFixed(2)}s;animation-delay:${(Math.random() * 3).toFixed(2)}s;`;
+
+                inner.innerHTML =
+                    `<svg width="28" height="52" viewBox="0 0 38 58">` +
+                    `<path d="M19,58 Q18,42 19,26" stroke="${stem}" stroke-width="2.8" fill="none" stroke-linecap="round"/>` +
+                    `<path d="M19,44 Q12,40 9,35" stroke="${stem}" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
+                    `<path d="M19,38 Q26,34 29,29" stroke="${stem}" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
+                    `<path d="M19,26 C9,23 5,9 11,4 C15,1 17,11 19,24 C21,11 23,1 27,4 C33,9 29,23 19,26 Z" fill="${c.petal}" opacity=".95"/>` +
+                    `<circle cx="19" cy="10" r="2.2" fill="${c.center}"/>` +
+                    `<line x1="19" y1="16" x2="19" y2="10" stroke="${c.center}" stroke-width="1"/>` +
+                    `</svg>`;
+
+                wrap.appendChild(inner);
+                garden.appendChild(wrap);
+            }
+        }
+    });
+
+    document.getElementById('envelopeContainer').addEventListener('click', function() {
+        this.classList.toggle('open');
+    });
+
+    const inicio = new Date('2026-04-13T00:00:00');
+    function tick() {
+        const diff = new Date() - inicio;
+        if (diff < 0) return;
+        document.getElementById('days').innerText = Math.floor(diff / 86400000);
+        document.getElementById('hours').innerText = String(Math.floor((diff / 3600000) % 24)).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(Math.floor((diff / 60000) % 60)).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(Math.floor((diff / 1000) % 60)).padStart(2, '0');
+    }
+    setInterval(tick, 1000);
+    tick();
+});
+</script>
+</body>
+</html>
