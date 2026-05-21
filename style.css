@@ -1,0 +1,244 @@
+:root {
+    --sky-gradient: linear-gradient(to bottom, #a1c4fd 0%, #c2e9fb 100%);
+    --grass-dark: #1b4314;
+    --grass-mid: #2e6f25;
+    /* Colores crema del sobre geométrico */
+    --envelope-bg: #fdf5e6;
+    --envelope-shadow: #f3e5ab;
+    --envelope-darker: #ebdca7;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.garden-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    background: var(--sky-gradient);
+}
+
+/* Sol y nubes */
+.sun {
+    position: absolute;
+    top: 60px;
+    right: 12%;
+    width: 90px;
+    height: 90px;
+    background: #ffeb3b;
+    border-radius: 50%;
+    box-shadow: 0 0 60px #fff59d;
+}
+
+.cloud {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 20px;
+    animation: moveClouds linear infinite;
+}
+.c1 { width: 150px; height: 40px; top: 10%; animation-duration: 35s; }
+.c2 { width: 200px; height: 50px; top: 18%; animation-duration: 50s; opacity: 0.6; }
+.c3 { width: 120px; height: 35px; top: 8%; animation-duration: 25s; opacity: 0.7; }
+
+/* Contenedor del Árbol */
+.tree-container {
+    position: absolute;
+    bottom: 105px;
+    left: 8%;
+    z-index: 5;
+    transform-origin: bottom center;
+    animation: treeSway 6s infinite ease-in-out;
+}
+
+.real-tree { display: block; }
+
+.leaf-cluster {
+    transform-origin: center center;
+    animation: leafFlutter 4s infinite ease-in-out;
+}
+
+/* Campo denso de Lirios */
+.lilies-field {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 140px; 
+    z-index: 10;
+}
+
+.lily {
+    position: absolute;
+    transform-origin: bottom center;
+    animation: lilySway 4s infinite ease-in-out;
+}
+
+.grass-floor {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 130px;
+    background: linear-gradient(to top, var(--grass-dark), var(--grass-mid));
+    z-index: 4;
+}
+
+/* --- DISEÑO DEL SOBRE CREMA Y LA HOJA INTERNA --- */
+.envelope-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -30%); /* Centrado ajustado para compensar la salida */
+    z-index: 100;
+    width: 360px;
+    height: 240px;
+}
+
+.envelope {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.18));
+}
+
+/* Solapa trasera abierta y fondo interior */
+.back-flap {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--envelope-darker);
+    border-radius: 0 0 12px 12px;
+}
+.back-flap::before {
+    content: '';
+    position: absolute;
+    top: -118px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 180px solid transparent;
+    border-right: 180px solid transparent;
+    border-bottom: 120px solid var(--envelope-darker);
+}
+
+/* Hoja física saliendo del sobre */
+.letter-sheet {
+    position: absolute;
+    left: 5%;
+    bottom: 10px;
+    width: 90%;
+    height: 290px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 25px 20px;
+    box-sizing: border-box;
+    text-align: center;
+    z-index: 2;
+    
+    /* Configuración de animación de extracción */
+    transform: translateY(120px);
+    opacity: 0;
+    animation: extractLetter 2s cubic-bezier(0.25, 1, 0.5, 1) 0.6s forwards;
+}
+
+/* Cuerpo frontal del sobre */
+.front-flaps {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--envelope-bg);
+    border-radius: 0 0 12px 12px;
+    z-index: 3;
+    background: linear-gradient(30deg, var(--envelope-bg) 50%, var(--envelope-shadow) 50.5%);
+}
+.front-flaps::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 180px solid var(--envelope-bg);
+    border-right: 180px solid var(--envelope-bg);
+    border-top: 130px solid transparent;
+    z-index: 4;
+}
+
+/* Tipografías y estilos del contenido */
+.card-header {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1b5e20;
+    margin-bottom: 8px;
+}
+
+.legend {
+    color: #455a64;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.timer {
+    margin-top: 22px;
+    border-top: 1px dashed rgba(0,0,0,0.12);
+    padding-top: 14px;
+}
+
+.timer p {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 6px 0;
+    color: #78909c;
+}
+
+#countdown {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #37474f;
+}
+
+.num {
+    color: #2e7d32;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- ANIMACIONES --- */
+@keyframes extractLetter {
+    0% {
+        transform: translateY(120px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(-95px); /* Desplazamiento óptimo hacia arriba */
+        opacity: 1;
+    }
+}
+
+@keyframes treeSway {
+    0%, 100% { transform: rotate(-1.5deg) skewX(-0.5deg); }
+    50% { transform: rotate(1.5deg) skewX(0.5deg); }
+}
+
+@keyframes lilySway {
+    0%, 100% { transform: rotate(-3deg) skewX(-1deg); }
+    50% { transform: rotate(4deg) skewX(1.5deg); }
+}
+
+@keyframes leafFlutter {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(6deg) scale(1.03); }
+}
+
+@keyframes moveClouds {
+    from { left: -220px; }
+    to { left: 100%; }
+}
